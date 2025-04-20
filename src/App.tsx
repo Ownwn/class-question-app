@@ -29,14 +29,15 @@ function App() {
                 Click on the Vite and React logos to learn more
             </p>
 
-            <form onSubmit={submitForm}>
+            <form onSubmit={e => submitForm(e)}>
                 <button type="submit">submit me!</button>
 
             </form>
         </>
     );
 
-    async function submitForm() {
+    async function submitForm(event) {
+        event.preventDefault()
         alert("submitted!")
     }
 }
