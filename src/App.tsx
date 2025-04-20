@@ -36,9 +36,12 @@ function App() {
         </>
     );
 
+    // @ts-ignore
     async function submitForm(event) {
         event.preventDefault()
         alert("submitted!")
+
+
     }
 }
 
