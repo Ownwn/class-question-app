@@ -1,0 +1,11 @@
+{
+    "compatibility_date": "2025-04-20",
+    "d1_databases": [
+        {
+            "binding": "DB",
+            "database_name": "SURF",
+            "database_id": "bd8759a1-047e-43dd-b457-5ae37759dcb8",
+            "preview_database_id": "DB"
+        }
+    ]
+}

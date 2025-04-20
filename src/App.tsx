@@ -41,7 +41,6 @@ function App() {
         event.preventDefault()
         alert("submitted!")
 
-
     }
 }
 
