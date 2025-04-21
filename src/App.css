@@ -45,3 +45,15 @@
 button {
   width: 200px;
 }
+
+.questions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.questions ul {
+  padding: 0;
+  margin: 0;
+  list-style-position: inside;
+}

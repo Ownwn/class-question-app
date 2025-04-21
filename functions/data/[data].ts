@@ -7,12 +7,14 @@ export async function onRequest(context) {
         return response("Unauthorized", 401);
     }
 
-    const data = await getDataFromId(context.env, url);
-    if (!data) {
-        return response("Bad data", 500);
+    if (url === "add") {
+        return await addQuestion(context);
+    }
+    if (url === "get") {
+        return await getQuestion(context.env);
     }
 
-    return response(JSON.stringify(data), 200);
+    return response("Bad request", 400);
 }
 
 function response(content: string, status: number) {
@@ -22,29 +24,66 @@ function response(content: string, status: number) {
 }
 
 async function createData(env) {
-    await env.DB.prepare("CREATE TABLE IF NOT EXISTS employees (id INT PRIMARY KEY, name VARCHAR(50), department VARCHAR(50))").run();
+    await env.DB.prepare("CREATE TABLE IF NOT EXISTS questions (id BIGINT PRIMARY KEY, value VARCHAR(500))").run();
 
-    await env.DB.prepare("INSERT INTO employees VALUES (1, 'John Smith', 'Marketing')").run();
-
+    await env.DB.prepare("INSERT INTO questions VALUES (1, 'first question?')").run(); // todo delme
 }
 
-async function getDataFromId(env, id: string) {
+async function addQuestion(context) {
+    const question = await parseQuestion(context);
+    if (!question) {
+        return response("Bad question", 400);
+
+    }
+
+
+    try {
+        const stmt = await context.env.DB
+            .prepare("INSERT INTO questions VALUES (?, ?)")
+            .bind(Date.now(), question) // todo better ID
+            .run();
+
+        return response("Added", 200);
+
+    } catch (e) {
+        return response("Error adding question", 500);
+    }
+}
+
+async function parseQuestion(context) {
+    const badChars = [" ", ";", "&", "*"];
+    let question;
+    try {
+        const json = await context.request.json();
+        question = json.question;
+    } catch (e) {
+        return undefined;
+    }
+
+    if (!question || badChars.some(char => question.indexOf(char) !== -1)) {
+        return undefined;
+    }
+
+    return question;
+}
+
+async function getQuestion(env) {
     try {
         const stmt = env.DB
-            .prepare("SELECT * FROM employees WHERE id = ?")
-            .bind(id)
+            .prepare("SELECT * FROM questions")
             .run();
 
         const { results } = await stmt;
-        return results;
+        return response(JSON.stringify(results), 200);
+
     } catch (e) {
         await createData(env);
-        return undefined;
+        return response("Creating data...", 500);
     }
 }
 
 function validateUrl(url: string) {
-    const badChars = [" ", ";", "&", "*"];
+
     const urls = ["https://purple-brook-3fec.ownwn.workers.dev/data", "http://127.0.0.1:8788/data"];
 
     for (const urlStart of urls) {
@@ -60,8 +99,7 @@ function validateUrl(url: string) {
         url = url.substring(0, url.length - 1);
     }
 
-
-    if (!url || url.length === 0 || badChars.some(char => url.indexOf(char) !== -1)) {
+    if (!url || url.length === 0 || (url !== "get" && url !== "add")) {
         return undefined;
     }
     return url;

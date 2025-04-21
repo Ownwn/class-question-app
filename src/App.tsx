@@ -6,6 +6,9 @@ import "./App.css";
 function App() {
     const [count, setCount] = useState(0);
 
+    // @ts-ignore
+    const [questions, setQuestions] = useState<string[]>([]);
+
     return (
         <>
             <div>
@@ -31,16 +34,34 @@ function App() {
 
             <form onSubmit={e => submitForm(e)}>
                 <button type="submit">submit me!</button>
+                <input type="text" name="text" required/>
 
             </form>
+
+            <div className="questions">
+                {getQuestions()}
+            </div>
         </>
     );
 
+    function getQuestions() {
+        return <ul>
+            {questions.map((e, index) => <li key={index}>{e}</li>)}
+
+
+        </ul>;
+    }
+
     // @ts-ignore
     async function submitForm(event) {
-        event.preventDefault()
-        alert("submitted!")
+        event.preventDefault();
+        const text = new FormData(event.target).get("text") as string;
+        if (!text) {
+            return;
+        }
+        console.log(text);
 
+        setQuestions([...questions, text]);
     }
 }
 
