@@ -7,5 +7,11 @@
             "database_id": "bd8759a1-047e-43dd-b457-5ae37759dcb8",
             "preview_database_id": "DB"
         }
+    ],
+    "kv_namespaces": [
+        {
+            "binding": "RATE_LIMIT",
+            "id": "49ab088802a44851ac778e1cfa9b4c0f"
+        }
     ]
 }

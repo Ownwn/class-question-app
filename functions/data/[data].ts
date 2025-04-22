@@ -1,9 +1,10 @@
 export async function onRequest(context) {
+
     const url = validateUrl(context.request.url);
     if (!url) {
         return response("Bad request", 400);
     }
-    if (!checkCookie(context)) {
+    if (!checkAuthorised(context)) {
         return response("Unauthorized", 401);
     }
 
@@ -15,6 +16,24 @@ export async function onRequest(context) {
     }
 
     return response("Bad request", 400);
+}
+
+async function checkRateLimit(context) {
+    const cookie = getAuthCookie(context);
+    if (!cookie) {
+        return false;
+    }
+    let timeout = parseInt(await context.env.RATE_LIMIT.get(cookie));
+    if (!timeout || isNaN(timeout)) {
+        context.env.RATE_LIMIT.put(cookie, Date.now());
+        return false;
+    }
+
+    if (Date.now() - timeout > 5000) {
+        context.env.RATE_LIMIT.put(cookie, Date.now());
+        return true;
+    }
+    return false;
 }
 
 function response(content: string, status: number) {
@@ -36,8 +55,6 @@ async function isDuplicate(context, question: string) {
             .bind(question)
             .first();
 
-        console.log(numDupes.count);
-
         return numDupes.count >= 1;
 
     } catch (e) {
@@ -47,6 +64,10 @@ async function isDuplicate(context, question: string) {
 }
 
 async function addQuestion(context) {
+    if (!await checkRateLimit(context)) {
+        return response("Rate limited", 429);
+    }
+
     const question = await parseQuestion(context);
     if (!question) {
         return response("Bad question", 400);
@@ -127,18 +148,26 @@ function validateUrl(url: string) {
 }
 
 
-function checkCookie(context: EventContext<any, any, any>): boolean {
+function checkAuthorised(context): boolean {
+    const cookie = getAuthCookie(context);
+    if (!cookie) {
+        return false;
+    }
+    return cookie === context.env.AUTH;
+}
+
+function getAuthCookie(context) {
     const cookies = context.request.headers.get("cookie");
     if (!cookies) {
-        return false;
+        return undefined;
     }
 
     for (const cookie of cookies.split(";")) {
         const [name, value] = cookie.trim().split("=");
-        if (name === "authentication" && value === context.env.AUTH) {
-            return true;
+        if (name === "authentication") {
+            return value;
         }
     }
 
-    return false;
+    return undefined;
 }
