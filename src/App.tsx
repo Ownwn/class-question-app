@@ -4,11 +4,20 @@ import "./App.css";
 function App() {
 
     // @ts-ignore
-    const [questions, setQuestions] = useState<string[]>(["first", "second"]);
-    const [errors, setErrors] = useState<string[]>([]);
+    const [questions, setQuestions] = useState<string[]>([]);
+    const [errors, setErrors] = useState<[number, string][]>([]);
 
     useEffect(() => {
         updateQuestions();
+    }, []);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setErrors(array => (
+                array.filter(error => Date.now() - error[0] < 3500)
+            ));
+        }, 500);
+        return () => clearInterval(interval);
     }, []);
 
     return (
@@ -36,8 +45,8 @@ function App() {
             return <></>;
         }
         return <>
-            {errors.map((e, index) =>
-                <h2 key={index} className="error">{e}</h2>)}
+            {errors.map(e =>
+                <h2 key={e[0]} className="error">{e[1]}</h2>)}
         </>;
     }
 
@@ -71,7 +80,7 @@ function App() {
             clearErrors();
             return;
         }
-        setErrors([...errors, error]);
+        setErrors([...errors, [Date.now(), error]]);
     }
 
     function clearErrors() {
@@ -93,7 +102,8 @@ function App() {
         });
 
         if (!response.ok) {
-            addError("Error adding question: " + await response.text());
+            const responseText = await response.text();
+            addError("Error adding question: " + (responseText || response.statusText));
             return;
         }
         clearErrors();

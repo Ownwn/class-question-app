@@ -29,11 +29,25 @@ button {
   list-style: none inside none;
 }
 .questions li {
-  border: 3px solid red;
+  border: 3px solid blue;
   margin: 10px 0;
 }
 
 
 .error {
   color: red;
+  -webkit-animation: fadeout 0.7s 1.8s forwards;
+  animation: fadeout 0.7s 1.8s forwards;
+  margin: 5px;
+}
+
+/* https://www.w3schools.com/howto/howto_js_snackbar.asp */
+@-webkit-keyframes fadeout {
+  from {bottom: 30px; opacity: 1;}
+  to {bottom: 0; opacity: 0;}
+}
+
+@keyframes fadeout {
+  from {bottom: 30px; opacity: 1;}
+  to {bottom: 0; opacity: 0;}
 }
