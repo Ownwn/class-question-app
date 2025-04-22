@@ -93,7 +93,7 @@ function App() {
         });
 
         if (!response.ok) {
-            addError("Error adding question: " + response.status + " " + response.statusText);
+            addError("Error adding question: " + await response.text());
             return;
         }
         clearErrors();

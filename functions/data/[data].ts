@@ -29,6 +29,23 @@ async function createData(env) {
     await env.DB.prepare("INSERT INTO questions VALUES (1, 'first question?')").run(); // todo delme
 }
 
+async function isDuplicate(context, question: string) {
+    try {
+        const numDupes = await context.env.DB
+            .prepare("SELECT COUNT(*) as count FROM questions WHERE value = ?")
+            .bind(question)
+            .first();
+
+        console.log(numDupes.count);
+
+        return numDupes.count >= 1;
+
+    } catch (e) {
+        console.error("Error checking for duplicate questions...", e);
+        return true;
+    }
+}
+
 async function addQuestion(context) {
     const question = await parseQuestion(context);
     if (!question) {
@@ -36,8 +53,12 @@ async function addQuestion(context) {
 
     }
 
+    if (await isDuplicate(context, question)) {
+        return response("Question already exists", 409);
+    }
 
     try {
+        //@ts-ignore
         const stmt = await context.env.DB
             .prepare("INSERT INTO questions VALUES (?, ?)")
             .bind(Date.now(), question) // todo better ID
