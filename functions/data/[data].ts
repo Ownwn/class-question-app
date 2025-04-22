@@ -4,7 +4,7 @@ export async function onRequest(context) {
     if (!url) {
         return response("Bad request", 400);
     }
-    if (!checkAuthorised(context)) {
+    if (!checkAuthorised(context)) { // todo need to actual have auth system
         return response("Unauthorized", 401);
     }
 
@@ -43,14 +43,14 @@ function response(content: string, status: number) {
 }
 
 async function createData(env) {
-    await env.DB.prepare("CREATE TABLE IF NOT EXISTS questions (id BIGINT PRIMARY KEY, value VARCHAR(500))").run();
+    await env.SURF.prepare("CREATE TABLE IF NOT EXISTS questions (id BIGINT PRIMARY KEY, value VARCHAR(500))").run();
 
-    await env.DB.prepare("INSERT INTO questions VALUES (1, 'first question?')").run(); // todo delme
+    await env.SURF.prepare("INSERT INTO questions VALUES (1, 'first question?')").run(); // todo delme
 }
 
 async function isDuplicate(context, question: string) {
     try {
-        const numDupes = await context.env.DB
+        const numDupes = await context.env.SURF
             .prepare("SELECT COUNT(*) as count FROM questions WHERE value = ?")
             .bind(question)
             .first();
@@ -80,7 +80,7 @@ async function addQuestion(context) {
 
     try {
         //@ts-ignore
-        const stmt = await context.env.DB
+        const stmt = await context.env.SURF
             .prepare("INSERT INTO questions VALUES (?, ?)")
             .bind(Date.now(), question) // todo better ID
             .run();
@@ -111,7 +111,7 @@ async function parseQuestion(context) {
 
 async function getQuestion(env) {
     try {
-        const stmt = env.DB
+        const stmt = env.SURF
             .prepare("SELECT * FROM questions")
             .run();
 
