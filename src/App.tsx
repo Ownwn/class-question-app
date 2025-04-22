@@ -1,67 +1,104 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+import { useEffect, useState } from "react";
 import "./App.css";
 
 function App() {
-    const [count, setCount] = useState(0);
 
     // @ts-ignore
-    const [questions, setQuestions] = useState<string[]>([]);
+    const [questions, setQuestions] = useState<string[]>(["first", "second"]);
+    const [errors, setErrors] = useState<string[]>([]);
+
+    useEffect(() => {
+        updateQuestions();
+    }, []);
 
     return (
         <>
-            <div>
-                <a href="https://vite.dev" target="_blank">
-                    <img src={viteLogo} className="logo" alt="Vite logo"/>
-                </a>
-                <a href="https://react.dev" target="_blank">
-                    <img src={reactLogo} className="logo react" alt="React logo"/>
-                </a>
-            </div>
-            <h1>Vite + React</h1>
-            <div className="card">
-                <button onClick={() => setCount((count) => count + 1)}>
-                    count is {count}
-                </button>
-                <p>
-                    Edit <code>src/App.tsx</code> and save to test HMR
-                </p>
-            </div>
-            <p className="read-the-docs">
-                Click on the Vite and React logos to learn more
-            </p>
 
-            <form onSubmit={e => submitForm(e)}>
-                <button type="submit">submit me!</button>
-                <input type="text" name="text" required/>
+
+            <form onSubmit={e => submitQuestion(e)}>
+                <input type="text" name="text" placeholder="Question" required/>
+                <button type="submit">Add question</button>
 
             </form>
 
+
+            {getErrors()}
+            <br/>
+
             <div className="questions">
-                {getQuestions()}
+                {formatQuestions()}
             </div>
         </>
     );
 
-    function getQuestions() {
+    function getErrors() {
+        if (errors.length === 0) {
+            return <></>;
+        }
+        return <>
+            {errors.map((e, index) =>
+                <h2 key={index} className="error">{e}</h2>)}
+        </>;
+    }
+
+    function formatQuestions() {
         return <ul>
             {questions.map((e, index) => <li key={index}>{e}</li>)}
-
-
         </ul>;
     }
 
+    function updateQuestions() {
+        fetch("data/get")
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                }
+                addError("Error fetching questions");
+                throw new Error("Error fetching questions");
+            })
+            .then(result => {
+                // @ts-ignore
+                setQuestions(result.map(q => q.value));
+            })
+            .catch(() => {
+                addError("Error loading questions");
+                throw new Error("Error loading questions");
+            });
+    }
+
+    function addError(error: string) {
+        if (!error) {
+            clearErrors();
+            return;
+        }
+        setErrors([...errors, error]);
+    }
+
+    function clearErrors() {
+        setErrors([]);
+    }
+
     // @ts-ignore
-    async function submitForm(event) {
+    async function submitQuestion(event) {
         event.preventDefault();
         const text = new FormData(event.target).get("text") as string;
         if (!text) {
+            addError("Invalid question");
             return;
         }
-        console.log(text);
 
-        setQuestions([...questions, text]);
+        const response = await fetch("data/add", {
+            method: "POST",
+            body: JSON.stringify({ question: text })
+        });
+
+        if (!response.ok) {
+            addError("Error adding question: " + response.status + " " + response.statusText);
+            return;
+        }
+        clearErrors();
+
+        updateQuestions();
     }
 }
 
