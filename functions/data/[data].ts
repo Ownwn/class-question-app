@@ -25,12 +25,12 @@ async function checkRateLimit(context) {
     }
     let timeout = parseInt(await context.env.RATE_LIMIT.get(cookie));
     if (!timeout || isNaN(timeout)) {
-        context.env.RATE_LIMIT.put(cookie, Date.now());
+        await context.env.RATE_LIMIT.put(cookie, Date.now());
         return false;
     }
 
     if (Date.now() - timeout > 5000) {
-        context.env.RATE_LIMIT.put(cookie, Date.now());
+        await context.env.RATE_LIMIT.put(cookie, Date.now());
         return true;
     }
     return false;
