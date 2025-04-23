@@ -1,5 +1,9 @@
 {
-    "compatibility_date": "2025-04-20",
+    "compatibility_date": "2025-04-16",
+    "compatibility_flags": ["nodejs_compat"],
+    "dev": {
+        "port": 5173
+    },
     "d1_databases": [
         {
             "binding": "SURF",

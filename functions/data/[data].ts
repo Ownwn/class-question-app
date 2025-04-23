@@ -126,7 +126,7 @@ async function getQuestion(env) {
 
 function validateUrl(url: string) {
 
-    const urls = ["https://class-question-app.pages.dev/data", "http://127.0.0.1:8788/data"];
+    const urls = ["https://class-question-app.pages.dev/data", "http://127.0.0.1:5173/data"];
 
     for (const urlStart of urls) {
         if (url.startsWith(urlStart)) {
