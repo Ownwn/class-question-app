@@ -1,3 +1,3 @@
 export function AdminPage() {
-    return <></>
+    return <><p>admin page</p></>
 }
