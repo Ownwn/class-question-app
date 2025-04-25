@@ -1,17 +1,20 @@
+import {getAuthCookie, isUserValid, validateUrl} from "../_Utils";
+
 export async function onRequest(context) {
 
     const url = validateUrl(context.request.url);
-    if (!url) {
+    console.log("now", url);
+    if (!url || (url !== "data/get" && url !== "data/add")) {
         return response("Bad request", 400);
     }
-    if (!checkAuthorised(context)) { // todo need to actual have auth system
+    if (!await isUserValid(context)) { // todo need to actual have auth system
         return response("Unauthorized", 401);
     }
 
-    if (url === "add") {
+    if (url === "data/add") {
         return await addQuestion(context);
     }
-    if (url === "get") {
+    if (url === "data/get") {
         return await getQuestion(context.env);
     }
 
@@ -19,7 +22,7 @@ export async function onRequest(context) {
 }
 
 async function checkRateLimit(context) {
-    const cookie = getAuthCookie(context);
+    const cookie = getAuthCookie(context, "user_authentication");
     if (!cookie) {
         return false;
     }
@@ -111,7 +114,7 @@ async function parseQuestion(context) {
 
 async function getQuestion(env) {
     try {
-        const stmt = env.SURF
+        const stmt = await env.SURF
             .prepare("SELECT * FROM questions")
             .run();
 
@@ -122,52 +125,4 @@ async function getQuestion(env) {
         await createData(env);
         return response("Creating data...", 500);
     }
-}
-
-function validateUrl(url: string) {
-
-    const urls = ["https://class-question-app.pages.dev/data", "http://127.0.0.1:5173/data"];
-
-    for (const urlStart of urls) {
-        if (url.startsWith(urlStart)) {
-            url = url.replace(urlStart, "");
-            break;
-        }
-    }
-    if (url.startsWith("/")) {
-        url = url.substring(1, url.length);
-    }
-    if (url.endsWith("/")) {
-        url = url.substring(0, url.length - 1);
-    }
-
-    if (!url || url.length === 0 || (url !== "get" && url !== "add")) {
-        return undefined;
-    }
-    return url;
-}
-
-
-function checkAuthorised(context): boolean {
-    const cookie = getAuthCookie(context);
-    if (!cookie) {
-        return false;
-    }
-    return cookie === context.env.AUTH;
-}
-
-function getAuthCookie(context) {
-    const cookies = context.request.headers.get("cookie");
-    if (!cookies) {
-        return undefined;
-    }
-
-    for (const cookie of cookies.split(";")) {
-        const [name, value] = cookie.trim().split("=");
-        if (name === "authentication") {
-            return value;
-        }
-    }
-
-    return undefined;
 }

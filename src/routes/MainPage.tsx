@@ -2,7 +2,7 @@ import {useEffect, useState} from "react";
 
 export function MainPage() {
     // @ts-ignore
-    const [questions, setQuestions] = useState<string[]>(["first", "second", "third"]);
+    const [questions, setQuestions] = useState<string[]>([]);
     const [errors, setErrors] = useState<[number, string][]>([]);
 
     useEffect(() => {
@@ -57,6 +57,11 @@ export function MainPage() {
     function updateQuestions() {
         fetch("data/get")
             .then(response => {
+
+                if (checkRedirectUser(response)) {
+                    return;
+                }
+
                 if (response.ok) {
                     return response.json();
                 }
@@ -99,6 +104,10 @@ export function MainPage() {
             body: JSON.stringify({ question: text })
         });
 
+        if (checkRedirectUser(response)) {
+            return;
+        }
+
         if (!response.ok) {
             const responseText = await response.text();
             addError("Error adding question: " + (responseText || response.statusText));
@@ -107,5 +116,13 @@ export function MainPage() {
         clearErrors();
 
         updateQuestions();
+    }
+
+    function checkRedirectUser(response: Response) {
+        if (response.url.includes("/offline")) {
+            window.location.href = "/offline";
+            return true;
+        }
+        return false;
     }
 }
