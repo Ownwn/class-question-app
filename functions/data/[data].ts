@@ -3,7 +3,7 @@ import {getAuthCookie, isUserValid, validateUrl} from "../_Utils";
 export async function onRequest(context) {
 
     const url = validateUrl(context.request.url);
-    console.log("now", url);
+
     if (!url || (url !== "data/get" && url !== "data/add")) {
         return response("Bad request", 400);
     }

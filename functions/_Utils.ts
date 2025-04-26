@@ -1,20 +1,14 @@
 export function validateUrl(url: string): string {
-    const urls = ["https://class-question-app.pages.dev", "http://127.0.0.1:5173"];
+    let endpoint = new URL(url).pathname
 
-    for (const urlStart of urls) {
-        if (url.startsWith(urlStart)) {
-            url = url.replace(urlStart, "");
-            break;
-        }
+    if (endpoint.startsWith("/")) {
+        endpoint = endpoint.substring(1, endpoint.length);
     }
-    if (url.startsWith("/")) {
-        url = url.substring(1, url.length);
-    }
-    if (url.endsWith("/")) {
-        url = url.substring(0, url.length - 1);
+    if (endpoint.endsWith("/")) {
+        endpoint = endpoint.substring(0, endpoint.length - 1);
     }
 
-    return url;
+    return endpoint;
 }
 
 export async function isUserValid(context) {
