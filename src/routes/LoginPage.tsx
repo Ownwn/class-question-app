@@ -5,7 +5,7 @@ export function LoginPage() {
     const [response, setResponse] = useState("");
 
     return <>
-        <p>nope, but:</p>
+        <h2>Login is required (WIP)</h2>
 
         <form action={sendPassword}>
             <PasswordForm/>
@@ -17,8 +17,8 @@ export function LoginPage() {
         const status = useFormStatus();
         return (
             <>
-                <button type="submit">Submit me</button>
-                <input type="password" required name="password"/>
+                <button type="submit">Submit password</button>
+                <input type="password" required name="password" placeholder="Password"/>
                 <p>{status.pending ? "Loading.." : response}</p>
             </>
         );
